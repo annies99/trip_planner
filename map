@@ -1,0 +1,81 @@
+from geopy.geocoders import Nominatim
+from geopy.extra.rate_limiter import RateLimiter
+import pandas as pd
+import folium
+from folium.plugins import MarkerCluster
+import webbrowser
+
+geolocator = Nominatim(user_agent='http://localhost:8080')
+locations = []
+
+data = {'address':[],'lat':[],'long':[]}
+df = pd.DataFrame(data)
+
+while True:
+    try:
+        val = input("Enter as many locations. When done, type 'done': ")
+        if val == "done":
+            for i in locations:
+                address = geolocator.geocode(i)
+                lat = address.latitude
+                long = address.longitude
+                # print(lat)
+                # print(long)
+                df.loc[i] = [i,lat,long]
+                # print(df)
+                # Store location name
+                # Map to latitude
+                # Map to longitude
+                # If (user input)
+                # Sort latitude/longitude
+                # Map back to location names and return
+            break
+    except ValueError:
+            print('Must be a location')
+            continue
+    else:
+        locations.append(val)
+
+# ask user for more input: what is your starting location?
+# get the latitude and longitude for starting location
+# insert starting location into database
+# start = ""
+# while start != "done":
+#     start = input("Enter your starting position. When done, type 'done': ")
+#     start_data = geolocator.geocode(start)
+#     df2 = pd.DataFrame([start, start_data.latitude, start_data.longitude])
+#     print(df2)
+#     df.append(df2,ignore_index=True)
+ #    print(df)
+
+# sort by latitude ascending order
+# take out starting location
+# return list
+df.sort_values(by=['lat'], inplace=True, ascending=False)
+print(df['address'].values)
+
+# Create a map object and center it to the average coordinates to m
+m = folium.Map(location=df[["lat", "long"]].mean().to_list(), zoom_start=5)
+# If the points are too close to each other, cluster them, create a cluster overlay with MarkerCluster, add to m
+marker_cluster = MarkerCluster().add_to(m)
+
+# Draw the markers and assign popup and hover texts
+# Add the markers the the cluster layers so that they are automatically clustered
+for i,r in df.iterrows():
+    location = (r["lat"], r["long"])
+    folium.Marker(location=location,
+                      popup = r['address'],
+                      tooltip=r['address'])\
+    .add_to(marker_cluster)
+# Display the map
+output_file = "map.html"
+m.save(output_file)
+url = "file:///Users/annieshaw/PycharmProjects/pythonProject/map.html"
+webbrowser.open(url, new=2)  # open in new tab
+
+# things to do:
+# add in starting position
+# mark the map with numbers
+# try to break it
+# make it easier to enter inputs for users
+# set in breaks if it does not identify location
